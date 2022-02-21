@@ -9,4 +9,5 @@ let chan = open_in fname;;
 let lexbuf = Lexing.from_channel chan;;
 let parse = Parser.prog Lexer.token lexbuf;;
 
-let () = print_endline (Print.print parse);;
+let python = Print.print parse;;
+let () = print_endline python;;

@@ -1,27 +1,33 @@
 open Java
+open Utils
 
 exception TypeError of string
+
+let tabs = repeat_string "\t";;
 
 let rec print g =
     let Goal (m, cl) = g in
     let ml_str = print_main_class m in
     let cl_str = print_class_list cl in
+    let libs = "import sys\nfrom typing import List" in
+    let run_main = "\nif __name__ == \"__main__\":\n\tmain()" in
     if String.length cl_str == 0 then ml_str
-    else Printf.sprintf "%s\n%s" ml_str cl_str
+    else Printf.sprintf "%s\n%s\n%s\n%s" libs ml_str cl_str run_main
 
 and print_main_class mc =
-    let  MainClass (_, _, s) = mc in
-    Printf.sprintf "def main():\n%s" (print_stmt s)
+    let MainClass (_, i, s) = mc in
+    Printf.sprintf "\ndef main():\n\t%s = sys.argv[1:]%s" (print_ident i) (print_stmt s 1)
 
-and print_var var =
+and print_var var t =
     let VarDec (_, i) = var in
-    Printf.sprintf "%s = None" (print_ident i)
+    let tabs_str = tabs t in
+    Printf.sprintf "\n%s%s = None" tabs_str (print_ident i)
 
-and print_var_list vl =
+and print_var_list vl t =
     match vl with
     | [] -> ""
-    | [var] -> print_var var
-    | var::t -> (print_var var) ^ "\n" ^ (print_var_list t)
+    | [var] -> print_var var t
+    | var::vlt -> (print_var var t) ^ (print_var_list vlt t)
 
 and print_class c =
     let ClassDec (i1, i2, vl, ml) = c in
@@ -29,7 +35,7 @@ and print_class c =
         if String.length i2 == 0 then ""
         else Printf.sprintf "(%s)" (print_ident i2)
     in
-    Printf.sprintf "class %s%s:\n%s\n%s" (print_ident i1) (extend_str) (print_var_list vl) (print_method_list ml)
+    Printf.sprintf "\nclass %s%s:%s%s" (print_ident i1) (extend_str) (print_var_list vl 1) (print_method_list ml 1)
 
 and print_class_list cl =
     match cl with
@@ -37,7 +43,7 @@ and print_class_list cl =
     | [c] -> print_class c
     | c::t -> (print_class c) ^ "\n" ^ (print_class_list t)
 
-and print_method m =
+and print_method m t =
     let MethodDec ((tp, i), args, (vl, sl, e)) = m in
     let i_str = print_ident i in
     let t_str = print_type tp in
@@ -48,31 +54,46 @@ and print_method m =
         | (tp, i)::t -> (Printf.sprintf "%s: %s, " (print_ident i) (print_type tp)) ^ (print_args t)
     in
     let args_str = print_args args in
-    let vl_str = print_var_list vl in
-    let sl_str = print_stmt_block sl in
+    let vl_str =
+        let temp = print_var_list vl 0 in
+        if String.length temp == 0 then ""
+        else "\n" ^ temp
+    in
+    let sl_str =
+        let temp = print_stmt_block sl (t+1) in
+        if String.length temp == 0 then ""
+        else temp
+    in
     let e_str = print_expr e in
-    Printf.sprintf "def %s(%s) -> %s:\n%s\n%s\nreturn %s" i_str args_str t_str vl_str sl_str e_str
+    let tabs_str = tabs t in
+    Printf.sprintf "\n%sdef %s(%s) -> %s:%s%s\n%sreturn %s" tabs_str i_str args_str t_str vl_str sl_str (tabs_str ^ "\t") e_str
 
-and print_method_list ml =
+and print_method_list ml t =
     match ml with
     | [] -> ""
-    | [m] -> print_method m
-    | m::t -> (print_method m) ^ "\n" ^ (print_method_list t)
+    | [m] -> print_method m t
+    | m::mlt -> (print_method m t) ^ "\n" ^ (print_method_list mlt t)
 
-and print_stmt s =
+and print_stmt s t =
+    let tabs_str = tabs t in
     match s with
-    | If (e, s1, s2) -> Printf.sprintf "if %s:\n%s\nelse:\n%s" (print_expr e) (print_stmt s1) (print_stmt s2)
-    | While (e, s') -> Printf.sprintf "while %s:\n%s" (print_expr e) (print_stmt s')
-    | Print e -> Printf.sprintf "print(%s)" (print_expr e)
-    | Assign (i, e) -> Printf.sprintf "%s = %s" (print_ident i) (print_expr e)
-    | AssignArr (i, e1, e2) -> Printf.sprintf "%s[%s] = %s" (print_ident i) (print_expr e1) (print_expr e2)
-    | Block sb -> print_stmt_block sb
+    | If (e, s1, s2) ->
+            Printf.sprintf "\n%sif %s:%s\n%selse:%s" tabs_str (print_expr e) (print_stmt s1 (t+1)) tabs_str (print_stmt s2 (t+1))
+    | While (e, s') ->
+            Printf.sprintf "\n%swhile %s:%s" tabs_str (print_expr e) (print_stmt s' (t+1))
+    | Print e ->
+            Printf.sprintf "\n%sprint(%s)" tabs_str (print_expr e)
+    | Assign (i, e) ->
+            Printf.sprintf "\n%s%s = %s" tabs_str (print_ident i) (print_expr e)
+    | AssignArr (i, e1, e2) ->
+            Printf.sprintf "\n%s%s[%s] = %s" tabs_str (print_ident i) (print_expr e1) (print_expr e2)
+    | Block sb -> "\n" ^ print_stmt_block sb t
 
-and print_stmt_block sb =
+and print_stmt_block sb t =
     match sb with
     | [] -> ""
-    | [h] -> print_stmt h
-    | h::t -> (print_stmt h) ^ "\n" ^ (print_stmt_block t)
+    | [h] -> print_stmt h t
+    | h::sbt -> (print_stmt h t) ^ "\n" ^ (print_stmt_block sbt t)
 
 and print_expr e =
     match e with
@@ -112,3 +133,4 @@ and print_type tp =
     | Int -> "int"
     | Boolean -> "bool"
     | Obj i -> i
+;;
