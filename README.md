@@ -8,7 +8,7 @@ This grammar is based on the MiniJava language created from Cambridge University
 (the link to the grammar of the programming language is
 [here](https://www.cambridge.org/resources/052182060X/MCIIJ2e/grammar.html#prod4)).
 
-![image](https://user-images.githubusercontent.com/64541805/155037217-478a29d6-70be-4729-9840-a583608ee9ef.png)
+![image](https://user-images.githubusercontent.com/64541805/155037561-ffe6fa0f-06ae-4de7-bab7-b2decc756d42.png)
 
 ## Installation and Running
 
