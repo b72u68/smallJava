@@ -3,8 +3,7 @@ open Utils
 
 exception TypeError of string
 
-let tab = "    ";;
-
+let tab = repeat_string " " 4;;
 let tabs = repeat_string tab;;
 
 let rec print g =
@@ -12,13 +11,13 @@ let rec print g =
     let ml_str = print_main_class m in
     let cl_str = print_class_list cl in
     let libs = "import sys\nfrom typing import List" in
-    let run_main = "\nif __name__ == \"__main__\":\n\tmain()" in
-    if String.length cl_str == 0 then ml_str
+    let run_main = "\n\nif __name__ == \"__main__\":\n\tmain()" in
+    if String.length cl_str == 0 then Printf.sprintf "%s\n%s\n%s" libs ml_str run_main
     else Printf.sprintf "%s\n%s\n%s\n%s" libs ml_str cl_str run_main
 
 and print_main_class mc =
     let MainClass (_, i, s) = mc in
-    Printf.sprintf "\ndef main():\n%s%s = sys.argv[1:]%s" tab (print_ident i) (print_stmt s 1)
+    Printf.sprintf "\n\ndef main():\n%s%s = sys.argv[1:]%s" tab (print_ident i) (print_stmt s 1)
 
 and print_var var t =
     let VarDec (_, i) = var in
@@ -37,7 +36,7 @@ and print_class c =
         if String.length i2 == 0 then ""
         else Printf.sprintf "(%s)" (print_ident i2)
     in
-    Printf.sprintf "\nclass %s%s:%s%s" (print_ident i1) (extend_str) (print_var_list vl 1) (print_method_list ml 1)
+    Printf.sprintf "\n\nclass %s%s:%s%s" (print_ident i1) (extend_str) (print_var_list vl 1) (print_method_list ml 1)
 
 and print_class_list cl =
     match cl with
@@ -67,7 +66,7 @@ and print_method m t =
         else temp
     in
     let e_str = print_expr e in
-    Printf.sprintf "\n%sdef %s(%s) -> %s:%s%s\n%sreturn %s" (tabs t) i_str args_str t_str vl_str sl_str (tabs (t+1)) e_str
+    Printf.sprintf "\n\n%sdef %s(%s) -> %s:%s%s\n%sreturn %s" (tabs t) i_str args_str t_str vl_str sl_str (tabs (t+1)) e_str
 
 and print_method_list ml t =
     match ml with
@@ -88,13 +87,13 @@ and print_stmt s t =
             Printf.sprintf "\n%s%s = %s" tabs_str (print_ident i) (print_expr e)
     | AssignArr (i, e1, e2) ->
             Printf.sprintf "\n%s%s[%s] = %s" tabs_str (print_ident i) (print_expr e1) (print_expr e2)
-    | Block sb -> "\n" ^ print_stmt_block sb t
+    | Block sb -> print_stmt_block sb t
 
 and print_stmt_block sb t =
     match sb with
     | [] -> ""
     | [h] -> print_stmt h t
-    | h::sbt -> (print_stmt h t) ^ "\n" ^ (print_stmt_block sbt t)
+    | h::sbt -> (print_stmt h t) ^ (print_stmt_block sbt t)
 
 and print_expr e =
     match e with

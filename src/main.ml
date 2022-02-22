@@ -4,10 +4,16 @@ if Array.length Sys.argv < 2 then
 ;;
 
 let fname = Array.get Sys.argv 1;;
+let basename =
+    try Filename.chop_extension fname
+    with Invalid_argument _ -> fname
+;;
 
 let chan = open_in fname;;
 let lexbuf = Lexing.from_channel chan;;
 let parse = Parser.prog Lexer.token lexbuf;;
 
 let python = Print.print parse;;
-let () = print_endline python;;
+let outchan = open_out (basename ^ ".py");;
+let _ = Printf.fprintf outchan "%s\n" python;;
+let _ = close_out outchan;;
