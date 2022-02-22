@@ -3,7 +3,9 @@ open Utils
 
 exception TypeError of string
 
-let tabs = repeat_string "\t";;
+let tab = "    ";;
+
+let tabs = repeat_string tab;;
 
 let rec print g =
     let Goal (m, cl) = g in
@@ -16,7 +18,7 @@ let rec print g =
 
 and print_main_class mc =
     let MainClass (_, i, s) = mc in
-    Printf.sprintf "\ndef main():\n\t%s = sys.argv[1:]%s" (print_ident i) (print_stmt s 1)
+    Printf.sprintf "\ndef main():\n%s%s = sys.argv[1:]%s" tab (print_ident i) (print_stmt s 1)
 
 and print_var var t =
     let VarDec (_, i) = var in
@@ -65,8 +67,7 @@ and print_method m t =
         else temp
     in
     let e_str = print_expr e in
-    let tabs_str = tabs t in
-    Printf.sprintf "\n%sdef %s(%s) -> %s:%s%s\n%sreturn %s" tabs_str i_str args_str t_str vl_str sl_str (tabs_str ^ "\t") e_str
+    Printf.sprintf "\n%sdef %s(%s) -> %s:%s%s\n%sreturn %s" (tabs t) i_str args_str t_str vl_str sl_str (tabs (t+1)) e_str
 
 and print_method_list ml t =
     match ml with
