@@ -16,7 +16,7 @@ This project requires Ocaml package manager `opam` and module `dune`.
 
 ```
 # install dependencies
-$ opam install dune utop menhir
+$ opam install dune menhir
 
 # build compiler
 $ make
@@ -25,10 +25,11 @@ $ make
 $ make clean
 ```
 
-Running `make` will create an executable `smolc` in the project directory. 
+Running `make` will create an executable `smolc` in the project directory.
 This tool helps converting the MiniJava code in the input file to Python.
 For example, the MiniJava code for declaring multiple classes (included in
 `/test/declare_class.java`):
+
 ```java
 class Test {
     public static void main(String[] arg) {
@@ -51,7 +52,9 @@ class Test3 extends Test2 {
     }
 }
 ```
+
 becomes
+
 ```python
 import sys
 from typing import List
@@ -73,4 +76,5 @@ class Test3(Test2):
 if __name__ == "__main__":
         main()
 ```
+
 after running `smolc`.

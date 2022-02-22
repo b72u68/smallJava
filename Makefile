@@ -4,4 +4,4 @@ all: src/java.ml src/parser.mly src/lexer.mll src/main.ml
 
 clean: _build smolc
 	rm smolc
-	rm -rf _build
+	dune clean
