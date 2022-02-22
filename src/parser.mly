@@ -13,6 +13,11 @@
 %token NOT DOT COMMA SEMI
 %token EOF
 
+%left AND
+%left LT
+%left PLUS MINUS
+%left TIMES
+
 %start prog
 %type <Java.goal> prog
 
@@ -46,7 +51,6 @@ var_dec_block:
 
 method_dec:
     | PUBLIC t IDENT LPAREN args RPAREN LBRACE var_dec_block stmt_block RETURN expr SEMI RBRACE { MethodDec (($2, $3), $5, ($8, $9, $11)) }
-    | PUBLIC t IDENT LPAREN RPAREN LBRACE var_dec_block stmt_block RETURN expr SEMI RBRACE { MethodDec (($2, $3), [], ($7, $8, $10)) }
 ;
 
 method_dec_block:
@@ -59,8 +63,12 @@ arg:
 ;
 
 args:
-    | arg COMMA args { $1::$3 }
-    | arg { [$1] }
+    | arg more_args { $1::$2 }
+;
+
+more_args:
+    | COMMA args { $2 }
+    | { [] }
 ;
 
 t:
@@ -84,16 +92,12 @@ stmt_block:
     | { [] }
 ;
 
-op:
-    | AND { And }
-    | LT { Lt }
-    | PLUS { Plus }
-    | MINUS { Minus }
-    | TIMES { Times }
-;
-
 expr:
-    | expr op expr { Op ($2, $1, $3) }
+    | expr AND expr { Op (And, $1, $3) }
+    | expr LT expr { Op (Lt, $1, $3) }
+    | expr PLUS expr { Op (Plus, $1, $3) }
+    | expr MINUS expr { Op (Minus, $1, $3) }
+    | expr TIMES expr { Op (Times, $1, $3) }
     | expr LBRACKET expr RBRACKET { ArrGet ($1, $3) }
     | expr DOT LENGTH { Length ($1) }
     | expr DOT IDENT LPAREN RPAREN { ObjMethod ($1, $3, []) }
