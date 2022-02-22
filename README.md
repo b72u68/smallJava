@@ -1,6 +1,6 @@
 # smolJava
 
-MiniJava programming language compiler.
+MiniJava programming language interpretation.
 
 ## Overview
 
@@ -18,14 +18,14 @@ This project requires Ocaml package manager `opam` and module `dune`.
 # install dependencies
 $ opam install dune menhir
 
-# build compiler
+# build interpretation
 $ make
 
 # remove/clean build
 $ make clean
 ```
 
-Running `make` will create an executable `smolc` in the project directory.
+Running `make` will create an executable `smolin` in the project directory.
 This tool helps converting the MiniJava code in the input file to Python.
 For example, the MiniJava code for declaring multiple classes (included in
 `/test/declare_class.java`):
@@ -77,4 +77,4 @@ if __name__ == "__main__":
         main()
 ```
 
-after running `smolc`.
+after running `smolin`.
