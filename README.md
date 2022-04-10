@@ -1,4 +1,4 @@
-# smolJava
+# smallJava
 
 MiniJava programming language interpretation.
 
